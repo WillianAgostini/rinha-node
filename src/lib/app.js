@@ -1,6 +1,9 @@
-import { RouterTree } from "./routerTree.js";
+import cluster from "node:cluster";
+import { availableParallelism } from "node:os";
+import process from "node:process";
 import { bodyToJson } from "./request.js";
 import { responseToJson } from "./response.js";
+import { RouterTree } from "./routerTree.js";
 
 const routeTreeGet = new RouterTree();
 const routeTreePost = new RouterTree();
@@ -14,7 +17,7 @@ const newPutRoute = (endpoint, fn) => routeTreePut.addRoute(endpoint, fn);
 const newPatchRoute = (endpoint, fn) => routeTreePatch.addRoute(endpoint, fn);
 const newDeleteRoute = (endpoint, fn) => routeTreeDelete.addRoute(endpoint, fn);
 
-async function executeEndpoint(req, res) {
+async function execute(req, res) {
   res.toJson = responseToJson;
   req.json = bodyToJson;
 
@@ -43,11 +46,31 @@ async function getRouteBy(path, method) {
   return;
 }
 
+const startWithCluster = async (handler) => {
+  const numCPUs = availableParallelism();
+
+  if (cluster.isPrimary) {
+    console.log(`Primary ${process.pid} is running`);
+
+    for (let i = 0; i < numCPUs; i++) {
+      cluster.fork();
+    }
+
+    cluster.on("exit", (worker, code, signal) => {
+      console.log(`worker ${worker.process.pid} died`);
+    });
+  } else {
+    await handler();
+    console.log(`Worker ${process.pid} started`);
+  }
+};
+
 export default {
   get: newGetRoute,
   post: newPostRoute,
   put: newPutRoute,
   patch: newPatchRoute,
   delete: newDeleteRoute,
-  executeEndpoint: executeEndpoint,
+  execute,
+  startWithCluster,
 };
