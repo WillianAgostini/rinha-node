@@ -28,7 +28,7 @@ export async function insertPerson(req, res) {
 }
 
 export async function findDocumentById(req, res) {
-  const id = req.url.replace("/pessoas/", "");
+  const id = req.params.id;
   const document = await findById(id);
   if (document) {
     res.statusCode = 200;
@@ -40,7 +40,7 @@ export async function findDocumentById(req, res) {
 }
 
 export async function findDocumentByTerm(req, res) {
-  const term = req.url.replace("/pessoas?t=", "");
+  const term = req.searchParams.get("t");
   const documents = await findByTerm(term);
   res.statusCode = 200;
   return res.toJson(documents);
