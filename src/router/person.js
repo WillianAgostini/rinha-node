@@ -3,6 +3,9 @@ import { insert, findById, findByTerm } from "../db/pessoas.js";
 function validateDocument(document) {
   if (!document.apelido) throw new Error("Apelido is required");
 
+  if (document.apelido.length > 32)
+    throw new Error("Apelido must be less than 32 characters");
+
   if (!document.nome) throw new Error("Nome is required");
 
   if (typeof document.nome !== "string")

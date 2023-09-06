@@ -1,8 +1,10 @@
-FROM node:18.12.1-alpine
+FROM node:20-alpine3.17
 
 COPY . .
 RUN npm ci
 
-RUN npm install -g forever
+# RUN npm install -g pm2
 
-CMD ["forever", "-f", "index.js"]
+EXPOSE 8080
+
+CMD ["node", "src/index.js"]

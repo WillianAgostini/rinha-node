@@ -9,9 +9,6 @@ import { countPerson } from "./router/countPerson.js";
 import { connectToDatabase } from "./db/db.js";
 import { connectToCache } from "./db/cache.js";
 
-const hostname = "127.0.0.1";
-const port = 8080;
-
 app.get("/pessoas", findDocumentByTerm);
 app.get("/pessoas/[:id]", findDocumentById);
 app.get("/contagem-pessoas", countPerson);
@@ -26,12 +23,11 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
+const hostname = "127.0.0.1";
+const port = 8080;
 const main = async () => {
-  await connectToDatabase("mongodb://127.0.0.1:27017");
-  await connectToCache({
-    host: "localhost", // Host do servidor Redis
-    port: 6379, // Porta do servidor Redis (por padrão, 6379)
-  });
+  await connectToDatabase(process.env.DB_URL || "mongodb://localhost:27017");
+  await connectToCache({ url: process.env.REDIS_URL || 'redis://localhost'});
   server.listen(port, hostname, () => {
     console.log(`Server running at http://${hostname}:${port}/`);
   });
